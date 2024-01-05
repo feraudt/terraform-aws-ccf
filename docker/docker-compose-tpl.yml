@@ -1,0 +1,89 @@
+version: '3.9'
+services:
+  client:
+    image: ${ccf_client_image}:${ccf_client_version}
+    ports:
+      - '80:80'
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
+    environment:
+      # React
+      - REACT_APP_PREVIOUS_YEAR_OF_USAGE=${react_previous_year_of_usage}
+      - REACT_APP_GROUP_BY=${react_group_by}
+      - REACT_APP_START_DATE=${react_start_date}
+      - REACT_APP_END_DATE=${react_end_date}
+      - REACT_APP_DATE_RANGE_VALUE=${react_date_range_value}
+      - REACT_APP_DATE_RANGE_TYPE=${react_date_range_type}
+      - REACT_APP_MINIMAL_DATE_AGE=${react_min_date_age}
+      - REACT_APP_BASE_URL=${react_base_url}
+      - REACT_APP_DISABLE_CACHE=${react_disable_cache}
+      - REACT_APP_DISABLE_FORECAST_VALIDATION=${react_disable_forecast_validation}
+      - REACT_APP_PAGE_LIMIT=${react_page_limit}
+      # Endpoint
+      - HOST=${host_domain_name}
+      - PORT=80
+    depends_on:
+      - api
+  api:
+    image: ${ccf_api_image}:${ccf_api_version}
+    ports:
+      - '4000:4000'
+    volumes:
+      - $HOME/.aws/credentials:/root/.aws/credentials
+    environment:
+      # AWS
+      - AWS_TARGET_ACCOUNT_ROLE_NAME=${aws_target_account_role_name}
+      - AWS_INCLUDE_ESTIMATES=${aws_include_estimates}
+      - AWS_USE_BILLING_DATA=${aws_use_billing_data}
+      - AWS_ATHENA_DB_NAME=${aws_athena_db_name}
+      - AWS_ATHENA_DB_TABLE=${aws_athena_db_table}
+      - AWS_ATHENA_REGION=${aws_athena_region}
+      - AWS_ATHENA_QUERY_RESULT_LOCATION=${aws_query_result_location}
+      - AWS_BILLING_ACCOUNT_ID=${aws_billing_account_id}
+      - AWS_BILLING_ACCOUNT_NAME=${aws_billing_account_name}
+      - AWS_ACCOUNTS=${aws_cloud_usage_target_accounts}
+      - AWS_AUTH_MODE=${aws_auth_mode}
+      - AWS_RECOMMENDATIONS_SERVICE=${aws_recommendations_service}
+      - AWS_COMPUTE_OPTIMIZER_BUCKET=${aws_compute_optimizer_bucket}
+      - AWS_RESOURCE_TAG_NAMES=${aws_resource_tag_names}
+      # GCP
+      %{ if gcp_query_data ~}
+      - GCP_INCLUDE_ESTIMATES=${gcp_include_estimates}
+      - GCP_USE_BILLING_DATA=${gcp_use_billing_data}
+      - GOOGLE_APPLICATION_CREDENTIALS=${gcp_application_credentials}
+      - GCP_BIG_QUERY_TABLE=${gcp_big_query_table}
+      - GCP_BILLING_PROJECT_ID=${gcp_billing_project_id}
+      - GCP_BILLING_PROJECT_NAME=${gcp_billing_project_name}
+      - GCP_PROJECTS=${gcp_cloud_usage_target_projects}
+      - GCP_USE_CARBON_FREE_ENERGY_PERCENTAGE=${gcp_use_carbon_free_energy_percentage}
+      - GCP_VCPUS_PER_GKE_CLUSTER=${gcp_vcpus_per_gke_cluster}
+      - GCP_VCPUS_PER_CLOUD_COMPOSER_ENVIRONMENT=${gcp_vcpus_per_composer_env}
+      %{ endif ~}
+      # Azure
+      %{ if azure_query_data ~}
+      - AZURE_INCLUDE_ESTIMATES=${azure_include_estimates}
+      - AZURE_USE_BILLING_DATA=${azure_use_billing_data}
+      - AZURE_CLIENT_ID=${azure_client_id}
+      - AZURE_CLIENT_SECRET=${azure_client_secret}
+      - AZURE_TENANT_ID=${azure_tenant_id}
+      - AZURE_AUTH_MODE=${azure_auth_mode}
+      - AZURE_RESOURCE_TAG_NAMES=${azure_resource_tag_names}
+      - AZURE_CONSUMPTION_CHUNK_DAYS=${azure_consumption_chunk_days}
+      - AZURE_SUBSCRIPTION_CHUNKS=${azure_subscription_chunks}
+      - AZURE_SUBSCRIPTIONS=${azure_cloud_usage_target_subscriptions}
+      %{ endif ~}
+      # GCS
+      - CACHE_MODE=${gcs_cache_mode}
+      - GCS_CACHE_BUCKET_NAME=${gcs_cache_bucket_name}
+      # On-Premise
+      - ON_PREMISE_CPU_UTILIZATION_SERVER=${on_prem_cpu_util_server}
+      - ON_PREMISE_CPU_UTILIZATION_LAPTOP=${on_prem_cpu_util_laptop}
+      - ON_PREMISE_CPU_UTILIZATION_DESKTOP=${on_prem_cpu_util_desktop}
+      - ON_PREMISE_AVG_WATTS_SERVER=${on_prem_avg_watts_server}
+      - ON_PREMISE_AVG_WATTS_LAPTOP=${on_prem_avg_watts_laptop}
+      - ON_PREMISE_AVG_WATTS_DESKTOP=${on_prem_avg_watts_desktop}
+      # CORS
+      - ENABLE_CORS=${cors_enable}
+      - CORS_ALLOW_ORIGIN=${cors_allow_origin}
+      # Other
+      - ELECTRICITY_MAPS_TOKEN=${electricity_maps_token}
