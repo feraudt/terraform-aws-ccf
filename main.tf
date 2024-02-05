@@ -27,6 +27,21 @@ locals {
       healthcheck_path = "/api/healthz"
     }
   } : {}
+  scaling_configs = merge(
+    {
+      default = {
+        min_size     = var.asg_size.min
+        max_size     = var.asg_size.max
+        desired_size = var.asg_size.desired
+      }
+      zero = {
+        min_size     = 0
+        max_size     = 0
+        desired_size = 0
+      }
+    },
+    var.asg_additional_scaling_configs
+  )
 }
 
 #########################################
@@ -95,6 +110,26 @@ resource "aws_autoscaling_group" "app" {
       propagate_at_launch = true
     }
   }
+}
+
+resource "aws_autoscaling_schedule" "app" {
+  for_each = (var.deploy_app && var.asg_enable_scaling_actions) ? { for scaling_action in var.asg_scaling_actions :
+    scaling_action.name => merge(
+        local.scaling_configs[scaling_action.scaling_config],
+        {
+          name = scaling_action.name
+          recurrence = scaling_action.cron
+        }
+    )
+  } : {}
+
+  scheduled_action_name  = each.value.name
+  min_size               = each.value.min_size
+  max_size               = each.value.max_size
+  desired_capacity       = each.value.desired_size
+  recurrence             = each.value.recurrence
+  autoscaling_group_name = aws_autoscaling_group.app[0].name
+  time_zone              = var.asg_scaling_actions_timezone
 }
 
 resource "aws_lb" "app" {

@@ -22,12 +22,12 @@ Additional connection & authentication settings for GCP and Azure can be specifi
 
 | Name | Version |
 |------|---------|
-| <a name="provider_archive"></a> [archive](#provider\_archive) | 2.4.0 |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 3.76.1 |
-| <a name="provider_aws.cur"></a> [aws.cur](#provider\_aws.cur) | 3.76.1 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.4.1 |
-| <a name="provider_template"></a> [template](#provider\_template) | 2.2.0 |
-| <a name="provider_time"></a> [time](#provider\_time) | 0.6.0 |
+| <a name="provider_archive"></a> [archive](#provider\_archive) | ~> 2.4.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 3.27 |
+| <a name="provider_aws.cur"></a> [aws.cur](#provider\_aws.cur) | ~> 3.27 |
+| <a name="provider_local"></a> [local](#provider\_local) | ~> 2.4.0 |
+| <a name="provider_template"></a> [template](#provider\_template) | ~> 2.2.0 |
+| <a name="provider_time"></a> [time](#provider\_time) | ~> 0.6.0 |
 
 ## Modules
 
@@ -40,6 +40,7 @@ No modules.
 | [aws_acm_certificate.app](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate) | resource |
 | [aws_acm_certificate_validation.app](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate_validation) | resource |
 | [aws_autoscaling_group.app](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
+| [aws_autoscaling_schedule.app](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_schedule) | resource |
 | [aws_cloudwatch_log_group.crawler](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
 | [aws_cloudwatch_log_group.lambda](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
 | [aws_cur_report_definition.athena_cur](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cur_report_definition) | resource |
@@ -113,7 +114,11 @@ No modules.
 | <a name="input_additional_tags"></a> [additional\_tags](#input\_additional\_tags) | The tags to add to the resources | `map(any)` | <pre>{<br>  "project": "green-it",<br>  "terraform_managed": true<br>}</pre> | no |
 | <a name="input_ami"></a> [ami](#input\_ami) | The image id to build the instance from (set empty for CUR ONLY deployments) | `string` | n/a | yes |
 | <a name="input_app"></a> [app](#input\_app) | The name of this app | `string` | `"ccf"` | no |
+| <a name="input_asg_additional_scaling_configs"></a> [asg\_additional\_scaling\_configs](#input\_asg\_additional\_scaling\_configs) | Additional ASG scaling configs than can be referenced in asg\_scaling\_actions (a 'default' config with the values from asg\_size and a 'zero' config already exist) | <pre>map(object({<br>    min_size     = number<br>    max_size     = number<br>    desired_size = number<br>  }))</pre> | `{}` | no |
+| <a name="input_asg_enable_scaling_actions"></a> [asg\_enable\_scaling\_actions](#input\_asg\_enable\_scaling\_actions) | Wether to activate ASG scaling actions defined in asg\_scaling\_actions or not | `bool` | `false` | no |
 | <a name="input_asg_health_check"></a> [asg\_health\_check](#input\_asg\_health\_check) | The health check settings of the instances autoscalling group | <pre>object({<br>    grace_period = number<br>    type         = string<br>  })</pre> | <pre>{<br>  "grace_period": 300,<br>  "type": "EC2"<br>}</pre> | no |
+| <a name="input_asg_scaling_actions"></a> [asg\_scaling\_actions](#input\_asg\_scaling\_actions) | The cron expressions and scaling configs name to configure recurring ASG scaling actions ('default' config with values from asg\_size and 'zero' already exist, additional configs can be defined in asg\_additional\_scaling\_configs) | <pre>list(object({<br>    name = string<br>    cron = string<br>    scaling_config = string<br>  }))</pre> | `[]` | no |
+| <a name="input_asg_scaling_actions_timezone"></a> [asg\_scaling\_actions\_timezone](#input\_asg\_scaling\_actions\_timezone) | The timezone used for scaling actions | `string` | `"Europe/Paris"` | no |
 | <a name="input_asg_size"></a> [asg\_size](#input\_asg\_size) | The capacity settings of the instances autoscalling group | <pre>object({<br>    min     = number<br>    max     = number<br>    desired = number<br>  })</pre> | <pre>{<br>  "desired": 1,<br>  "max": 2,<br>  "min": 1<br>}</pre> | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The region to deploy into (set empty for CUR ONLY deployments) | `string` | n/a | yes |
 | <a name="input_ccf_api_image"></a> [ccf\_api\_image](#input\_ccf\_api\_image) | The name and version tag of the CCF api image to deploy | <pre>object({<br>    name    = string<br>    version = string<br>  })</pre> | <pre>{<br>  "name": "docker.io/cloudcarbonfootprint/api",<br>  "version": "latest"<br>}</pre> | no |
@@ -180,17 +185,17 @@ No modules.
 | <a name="input_default_security_group_ids"></a> [default\_security\_group\_ids](#input\_default\_security\_group\_ids) | The list of security group IDs to add to the instances in the ASG (set empty for CUR ONLY deployments) | `list(string)` | n/a | yes |
 | <a name="input_deploy_app"></a> [deploy\_app](#input\_deploy\_app) | Whether to deploy the CCF app and create the required resources or not | `bool` | `true` | no |
 | <a name="input_deploy_cur"></a> [deploy\_cur](#input\_deploy\_cur) | Whether to deploy the CUR resources & services or not | `bool` | `false` | no |
-| <a name="input_docker_compose_path"></a> [docker\_compose\_path](#input\_docker\_compose\_path) | The path to the docker-compose.yml file, this module provides one under the templates directory | `string` | `"docker/docker-compose-tpl.yml"` | no |
+| <a name="input_docker_compose_path"></a> [docker\_compose\_path](#input\_docker\_compose\_path) | The path to the docker-compose.yml file, this module provides one under the templates directory | `string` | `"docker/docker-compose.yml.tftpl"` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | The deployment environent name | `string` | n/a | yes |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | The size of the instances | `string` | `"t3.medium"` | no |
 | <a name="input_key_name"></a> [key\_name](#input\_key\_name) | The name of the key to SSH into the instances | `string` | `""` | no |
-| <a name="input_nginx_conf_path"></a> [nginx\_conf\_path](#input\_nginx\_conf\_path) | The path to the nginx.conf file, this module provides one under the templates directory | `string` | `"nginx/nginx.conf"` | no |
+| <a name="input_nginx_conf_path"></a> [nginx\_conf\_path](#input\_nginx\_conf\_path) | The path to the nginx.conf file, this module provides one under the templates directory | `string` | `"nginx/nginx.conf.tftpl"` | no |
 | <a name="input_resource_aws_tags"></a> [resource\_aws\_tags](#input\_resource\_aws\_tags) | The keys of the AWS tags to include in the report table to allow resources grouping and filtering | `list(string)` | <pre>[<br>  "createdBy"<br>]</pre> | no |
 | <a name="input_resource_user_tags"></a> [resource\_user\_tags](#input\_resource\_user\_tags) | The keys of the user tags to include in the report table to allow resources grouping and filtering | `list(string)` | <pre>[<br>  "app",<br>  "environment",<br>  "project"<br>]</pre> | no |
 | <a name="input_route53_zone_name"></a> [route53\_zone\_name](#input\_route53\_zone\_name) | The domain name of the hosted zone to create the app host domain into (set empty for CUR ONLY deployments) | `string` | n/a | yes |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | The list of subnet IDs to add to the instances in the ASG (set empty for CUR ONLY deployments) | `list(string)` | n/a | yes |
 | <a name="input_user_data_additional_bash_commands"></a> [user\_data\_additional\_bash\_commands](#input\_user\_data\_additional\_bash\_commands) | Any bash commands to execute in the user\_data script (before sarting containers), typically your container registry login commands | `string` | `""` | no |
-| <a name="input_user_data_path"></a> [user\_data\_path](#input\_user\_data\_path) | The path to the user\_data script file, this module provides one under the templates directory | `string` | `"templates/user_data_tpl.sh"` | no |
+| <a name="input_user_data_path"></a> [user\_data\_path](#input\_user\_data\_path) | The path to the user\_data script file, this module provides one under the templates directory | `string` | `"templates/user_data.sh.tftpl"` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | The ID of the target VPC to deploy the app resources into (set empty for CUR ONLY deployments) | `string` | n/a | yes |
 
 ## Outputs
