@@ -382,10 +382,9 @@ data "aws_iam_policy" "additional_policies" {
   arn = each.key
 }
 
-resource "aws_iam_policy_attachment" "additional_policies" {
+resource "aws_iam_role_policy_attachment" "additional_policies" {
   for_each = toset(var.deploy_app ? var.additional_policies_arns : [])
 
-  name       = data.aws_iam_policy.additional_policies[each.key].name
-  roles      = [aws_iam_role.ccf_api[0].id]
+  role      = aws_iam_role.ccf_api[0].id
   policy_arn = data.aws_iam_policy.additional_policies[each.key].arn
 }
