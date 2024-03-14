@@ -89,6 +89,38 @@ variable "asg_size" {
   }
 }
 
+variable "asg_enable_scaling_actions" {
+  description = "Wether to activate ASG scaling actions defined in asg_scaling_actions or not"
+  type = bool
+  default = false
+}
+
+variable "asg_scaling_actions_timezone" {
+  description = "The timezone used for scaling actions"
+  type = string
+  default = "Europe/Paris"
+}
+
+variable "asg_scaling_actions" {
+  description = "The cron expressions and scaling configs name to configure recurring ASG scaling actions ('default' config with values from asg_size and 'zero' already exist, additional configs can be defined in asg_additional_scaling_configs)"
+  type = list(object({
+    name = string
+    cron = string
+    scaling_config = string
+  }))
+  default = []
+}
+
+variable "asg_additional_scaling_configs" {
+  description = "Additional ASG scaling configs than can be referenced in asg_scaling_actions (a 'default' config with the values from asg_size and a 'zero' config already exist)"
+  type = map(object({
+    min_size     = number
+    max_size     = number
+    desired_size = number
+  }))
+  default = {}
+}
+
 variable "asg_health_check" {
   description = "The health check settings of the instances autoscalling group"
   type = object({
@@ -104,19 +136,19 @@ variable "asg_health_check" {
 variable "user_data_path" {
   description = "The path to the user_data script file, this module provides one under the templates directory"
   type        = string
-  default     = "templates/user_data_tpl.sh"
+  default     = "templates/user_data.sh.tftpl"
 }
 
 variable "docker_compose_path" {
   description = "The path to the docker-compose.yml file, this module provides one under the templates directory"
   type        = string
-  default     = "docker/docker-compose-tpl.yml"
+  default     = "docker/docker-compose.yml.tftpl"
 }
 
 variable "nginx_conf_path" {
   description = "The path to the nginx.conf file, this module provides one under the templates directory"
   type        = string
-  default     = "nginx/nginx.conf"
+  default     = "nginx/nginx.conf.tftpl"
 }
 
 variable "route53_zone_name" {

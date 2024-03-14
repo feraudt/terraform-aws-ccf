@@ -327,7 +327,7 @@ resource "aws_glue_schema" "cur" {
   registry_arn  = aws_glue_registry.cur[0].arn
   data_format   = "AVRO"
   compatibility = "NONE"
-  schema_definition = templatefile("${path.module}/templates/cur_schema_tpl.json", {
+  schema_definition = templatefile("${path.module}/templates/cur_schema.json.tftpl", {
     user_tag_names = var.resource_user_tags
     aws_tag_names  = var.resource_aws_tags
   })
